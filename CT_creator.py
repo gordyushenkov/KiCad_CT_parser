@@ -5,7 +5,7 @@ import csv
 from netlist_components import KicadNetlist
 import os
 
-DEBUG_OUTPUT = True
+DEBUG_OUTPUT = False
 
 filename_xml=""#"C:\\Gordiushenkov\\Manufacturing\\Outsourcing\\EV48.01_11339_M.zip"
 def open_xml():
@@ -20,8 +20,8 @@ def generate():
 
         file_name_without_path = os.path.basename(filename_xml)
         file_name, file_extension = os.path.splitext(file_name_without_path)
-
-        with open(file_name + ' CT.csv', mode='w', newline='') as csv_file:
+        dir_path = os.path.dirname(os.path.abspath(filename_xml))
+        with open(os.path.join(dir_path, (file_name + ' CT.csv')), mode='w', newline='') as csv_file:
             # Create a CSV writer object
             csv_writer = csv.writer(csv_file)
             headers = ['N', 'Netname', 'From', 'To']
@@ -32,12 +32,13 @@ def generate():
                 for net, nodes in ref_nets.items():
                     csv_writer.writerow([f'{row_n}'] + [net.name] + [f'{node.ref}-{node.pin}' for node in nodes])
                     row_n += 1
-                    
+
     except Exception as e:
         msg = 'Runtime error occured:\n'
 
         traceback_info = traceback.format_exc()
         msg += f'{traceback_info}'
+        text_box_output.delete('1.0', tk.END)
         text_box_output.insert('1.0', msg)
 
 app = tk.Tk()
@@ -54,17 +55,26 @@ PADX = 5
 PADY = 5
 TEXTWIDTH = 100
 
-open_button = tk.Button(frame_arch, text="Schematic", command=open_xml)
+open_button = tk.Button(frame_arch, text="XML file", command=open_xml)
 open_button.pack(padx=PADX, pady=PADY, side='left')
 label_xml_file = tk.Label(frame_arch, text="Choose kicad xml file")
 label_xml_file.pack(pady=PADY, side='left')
 
 
 compare_button = tk.Button(frame_output, text="Generate", command=generate)
-compare_button.pack(pady=PADY)
+compare_button.pack(pady=PADY,)
 
 text_box_output = tk.Text(frame_output, wrap=tk.WORD, height=10, width=TEXTWIDTH)
 text_box_output.pack(fill=tk.BOTH, expand=True)
+
+Instruction = """How to use:
+1. Open schematics in Kicad
+2. Choose menu Tool->Generate BOM...
+3. Run any BOM generator by pressing "Generate" button
+4. Chose the xml file created in the design directory by pressing the button above
+5. Press generate button"""
+text_box_output.insert('1.0', Instruction)
+
 if DEBUG_OUTPUT:
     text_box_dbg = tk.Text(frame_output, wrap=tk.WORD, height=10, width=TEXTWIDTH)
     text_box_dbg.pack(fill=tk.BOTH, expand=True)
