@@ -1,21 +1,18 @@
 from __future__ import print_function
 
 import kicad_netlist_reader
+from netlist_components import KicadNetlist, KicadNet, KicadNode
+
 import csv
 import sys
 
 fn = "C:\\Gordiushenkov\\cabling\\Products\\SH.056.51 Fast charger\\SH.056.51 Fast charger.kicad_sch"
 fn = "C:\\Gordiushenkov\\cabling\\Products\\SH.056.51 Fast charger\\SH.056.51 Fast charger.xml"
 
-net = kicad_netlist_reader.netlist(fn)
-print(net)
-for n in net.getNets():
-    print()
-    print(n)
-    print(n.name)
-    print(n.attributes)
-    for ch in n.children:
-        print(ch.name)
-        print(ch.attributes)
+NL = KicadNetlist.from_xml_file(fn)
 
-print(net.getInterestingComponents())
+print(NL)
+
+# comps = net.getInterestingComponents()
+# for c in comps:
+#     print(f'{c.getRef()} {c.getPartName()}')
