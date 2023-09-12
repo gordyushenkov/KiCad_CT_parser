@@ -32,9 +32,13 @@ class KicadNetlist():
     NETNAME_WIDTH = 15
     def __init__(self):
         self._netlist = {}
+        self._components = {}
 
     def add_net(self, net:KicadNet, nodes:list):
         self._netlist[net] = nodes
+
+    def add_component(self, ref, attributes):
+        self._components[ref] = attributes
 
     def __repr__(self):
         txt = ''
@@ -43,6 +47,12 @@ class KicadNetlist():
             for n in nodes:
                 txt += f' {n.ref}-{n.pin}'
             txt += '\n'
+        for ref, attribs in self._components.items():
+            txt += f'{ref}:'
+            for name, val in attribs.items():
+                txt += f' {name}={val}'
+            txt += '\n'
+
         return txt
 
     def filter_netlist(self, min_node_N=0):
@@ -86,6 +96,10 @@ class KicadNetlist():
             net = KicadNet.from_xml_elem(n)
             nodes = [KicadNode.from_xml_elem(e) for e in n.getChildren(name="node")]
             NL.add_net(net, nodes)
+        components = netlist.getInterestingComponents()
+        for c in components:
+            field_names = c.getFieldNames()
+            NL.add_component(c.getRef(), {name: c.getField(name, aLibraryToo=False) for name in field_names})
         return NL
 
 def custom_sort_key(value):
@@ -101,9 +115,9 @@ def test_getting_comp_list(netlist):
 
 if __name__ == '__main__':
     fn = "C:\\Gordiushenkov\\cabling\\Products\\SH.056.51 Fast charger\\SH.056.51 Fast charger.xml"
-
+    fn = "/home/oleg/Documents/PeK/Electronics/Cables/cabling/Products/SH.056.51 Fast charger/SH.056.51 Fast charger.xml"
     NL = KicadNetlist.from_xml_file(fn)
 
-    # print(NL)
+    print(NL)
     filtered = NL.filter_netlist(2)
     filtered.get_CT()
