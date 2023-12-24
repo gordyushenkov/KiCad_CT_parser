@@ -12,7 +12,8 @@ fn = "C:\\Gordiushenkov\\cabling\\Products\\SH.056.51 Fast charger\\SH.056.51 Fa
 NL = KicadNetlist.from_xml_file(fn)
 
 print(NL)
-
+NL_filt = NL.filter_netlist(2)
+print(NL_filt)
 # comps = net.getInterestingComponents()
 # for c in comps:
 #     print(f'{c.getRef()} {c.getPartName()}')

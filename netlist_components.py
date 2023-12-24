@@ -28,10 +28,21 @@ class KicadNode(NamedTuple):
     def from_xml_elem(node):
         return KicadNode(ref=node.attributes['ref'], pin=node.attributes['pin'])
 
+# class KicadComponent(NamedTuple):
+#     ref: str = ''
+#     priority: int = 0
+#
+#     def __repr__(self):
+#         if self.priority:
+#             return f'[{self.priority}]{self.ref}'
+#         else:
+#             return f'{self.ref}'
+
 class KicadNetlist():
     NETNAME_WIDTH = 15
     def __init__(self):
         self._netlist = {}
+        self._complist = {} # ref: {attr: value}
 
     def add_net(self, net:KicadNet, nodes:list):
         self._netlist[net] = nodes
@@ -46,11 +57,15 @@ class KicadNetlist():
                 else:
                     txt += f' {n.ref}'
             txt += '\n'
+        for ref, attrib in self._complist.items():
+            txt += f'{ref}: {attrib}\n'
         return txt
 
     def filter_netlist(self, min_node_N=0):
         new_NL = KicadNetlist()
         new_NL._netlist = {net:node for net, node in self._netlist.items() if len(node) >= min_node_N}
+        refs = new_NL.get_ref_list()
+        new_NL._complist = {comp:attribs for comp, attribs in self._complist.items() if comp in refs}
         return new_NL
 
     def get_ref_list(self):
@@ -74,10 +89,16 @@ class KicadNetlist():
 
 
     def get_CT(self):
-        refs = sorted(self.get_ref_list(), key=custom_sort_key)
+        ref_set = self.get_ref_list()
+        refs_with_priority = [r for r in ref_set if self._complist[r].get('priority', 0)]
+        refs_without_priority = [r for r in ref_set if not self._complist[r].get('priority', 0)]
+        refs_with_priority = sorted(refs_with_priority, key=lambda x: self._complist[x]['priority'])
+        refs_without_priority = sorted(refs_without_priority, key=custom_sort_key)
         report = {}
-        netlist = self._netlist
-        for ref in refs:
+        for ref in refs_with_priority:
+            ref_dict = self.pop_nets_by_node_ref(ref)
+            report[ref] = ref_dict
+        for ref in refs_without_priority:
             ref_dict = self.pop_nets_by_node_ref(ref)
             report[ref] = ref_dict
         return report
@@ -90,6 +111,18 @@ class KicadNetlist():
             net = KicadNet.from_xml_elem(n)
             nodes = [KicadNode.from_xml_elem(e) for e in n.getChildren(name="node")]
             NL.add_net(net, nodes)
+
+        ref_list = NL.get_ref_list()
+        for ref in ref_list:
+            NL._complist[ref] = {'priority':0}
+
+        for comp in netlist.components:
+            ref = comp.getRef()
+            if ref in ref_list:
+                priority = comp.getField('priority')
+                if priority:
+                    NL._complist[ref]['priority'] = priority
+
         return NL
 
 def custom_sort_key(value):
@@ -108,7 +141,9 @@ if __name__ == '__main__':
 
     NL = KicadNetlist.from_xml_file(fn)
 
-    print(NL)
+    # print(NL)
     filtered = NL.filter_netlist(2)
-    print(filtered)
+    # print(filtered)
     filtered.get_CT()
+    refs = NL.get_ref_list()
+    print(refs)
