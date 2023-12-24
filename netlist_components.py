@@ -41,7 +41,10 @@ class KicadNetlist():
         for net, nodes in self._netlist.items():
             txt += f'{net.name:<{self.NETNAME_WIDTH}}'
             for n in nodes:
-                txt += f' {n.ref}-{n.pin}'
+                if n.pin:
+                    txt += f' {n.ref}-{n.pin}'
+                else:
+                    txt += f' {n.ref}'
             txt += '\n'
         return txt
 
@@ -78,6 +81,7 @@ class KicadNetlist():
             ref_dict = self.pop_nets_by_node_ref(ref)
             report[ref] = ref_dict
         return report
+
     @staticmethod
     def from_xml_file(fn):
         netlist = kicad_netlist_reader.netlist(fn)
@@ -104,6 +108,7 @@ if __name__ == '__main__':
 
     NL = KicadNetlist.from_xml_file(fn)
 
-    # print(NL)
+    print(NL)
     filtered = NL.filter_netlist(2)
+    print(filtered)
     filtered.get_CT()

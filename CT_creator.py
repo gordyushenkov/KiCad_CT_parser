@@ -21,7 +21,8 @@ def generate():
         file_name_without_path = os.path.basename(filename_xml)
         file_name, file_extension = os.path.splitext(file_name_without_path)
         dir_path = os.path.dirname(os.path.abspath(filename_xml))
-        with open(os.path.join(dir_path, (file_name + ' CT.csv')), mode='w', newline='') as csv_file:
+        output_fn = os.path.join(dir_path, (file_name + ' CT.csv'))
+        with open(output_fn, mode='w', newline='') as csv_file:
             # Create a CSV writer object
             csv_writer = csv.writer(csv_file)
             headers = ['N', 'Netname', 'From', 'To']
@@ -30,8 +31,18 @@ def generate():
             row_n = 1
             for ref_nets in CT.values():
                 for net, nodes in ref_nets.items():
-                    csv_writer.writerow([f'{row_n}'] + [net.name] + [f'{node.ref}-{node.pin}' for node in nodes])
+                    row = [f'{row_n}', net.name]
+                    for node in nodes:
+                        if node.pin:
+                            row.append(f'{node.ref}-{node.pin}')
+                        else:
+                            row.append(f'{node.ref}')
+                    csv_writer.writerow(row)
                     row_n += 1
+        msg = 'CT sucessfully generated:\n'
+        msg += f'{output_fn}'
+        text_box_output.delete('1.0', tk.END)
+        text_box_output.insert('1.0', msg)
 
     except Exception as e:
         msg = 'Runtime error occured:\n'
