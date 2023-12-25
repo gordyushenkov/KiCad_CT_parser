@@ -80,9 +80,11 @@ class KicadNetlist():
         poped_dict = {}
         used_nets = []
         for net, nodes in self._netlist.items():
-            if ref in [n.ref for n in nodes]:
-                poped_dict[net] = self._netlist[net]
-                used_nets.append(net)
+            for i, n in enumerate(nodes):
+                if ref == n.ref:
+                    poped_dict[net] = [n] + self._netlist[net][:i] + self._netlist[net][i+1:]
+                    used_nets.append(net)
+                    break
         for n in used_nets:
             del self._netlist[n]
         return poped_dict
