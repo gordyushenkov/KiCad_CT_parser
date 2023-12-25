@@ -19,14 +19,34 @@ class KicadNet(NamedTuple):
 
 class KicadNode(NamedTuple):
     ref: str = ''
-    pin: str = ''
+    pin: int = None
 
     def __repr__(self):
         return f'{self.ref} pin:{self.pin}'
 
+
+    def __lt__(self, other):
+        return self.ref < other.ref or (self.ref == other.ref and self.pin < other.pin)
+
+    def __le__(self, other):
+        return self.ref < other.ref or (self.ref == other.ref and self.pin <= other.pin)
+
+    def __eq__(self, other):
+        return self.ref == other.ref and self.pin == other.pin
+
+    def __gt__(self, other):
+        return self.ref > other.ref or (self.ref == other.ref and self.pin > other.pin)
+
+    def __ge__(self, other):
+        return self.ref > other.ref or (self.ref == other.ref and self.pin >= other.pin)
+
     @staticmethod
     def from_xml_elem(node):
-        return KicadNode(ref=node.attributes['ref'], pin=node.attributes['pin'])
+        try:
+            pin_num = int(node.attributes['pin'])
+        except Exception:
+            pin_num = None
+        return KicadNode(ref=node.attributes['ref'], pin=pin_num)
 
 # class KicadComponent(NamedTuple):
 #     ref: str = ''
@@ -87,7 +107,8 @@ class KicadNetlist():
                     break
         for n in used_nets:
             del self._netlist[n]
-        return poped_dict
+        sorted_dict = dict(sorted(poped_dict.items(), key=lambda item: item[1][0]))
+        return sorted_dict
 
 
     def get_CT(self):

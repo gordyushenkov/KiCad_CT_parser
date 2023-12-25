@@ -14,6 +14,6 @@ NL = KicadNetlist.from_xml_file(fn)
 print(NL)
 NL_filt = NL.filter_netlist(2)
 print(NL_filt)
-# comps = net.getInterestingComponents()
-# for c in comps:
-#     print(f'{c.getRef()} {c.getPartName()}')
+CT = NL.filter_netlist(2).get_CT()
+import pprint
+pprint.pprint(CT)
