@@ -83,7 +83,10 @@ Instruction = """How to use:
 2. Choose menu Tool->Generate BOM...
 3. Run any BOM generator by pressing "Generate" button
 4. Chose the xml file created in the design directory by pressing the button above
-5. Press generate button"""
+5. Press generate button
+
+Note: to provide sorting of the CT add "priority" property to the components and give it a numeric value. Components with lower priority come first"""
+
 text_box_output.insert('1.0', Instruction)
 
 if DEBUG_OUTPUT:
