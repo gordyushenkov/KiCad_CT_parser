@@ -107,7 +107,10 @@ class KicadNetlist():
                     break
         for n in used_nets:
             del self._netlist[n]
-        sorted_dict = dict(sorted(poped_dict.items(), key=lambda item: item[1][0]))
+        try:
+            sorted_dict = dict(sorted(poped_dict.items(), key=lambda item: item[1][0]))
+        except Exception as e:
+            sorted_dict = poped_dict
         return sorted_dict
 
 
